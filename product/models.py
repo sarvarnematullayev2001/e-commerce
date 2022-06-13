@@ -18,18 +18,21 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
     price = models.DecimalField(max_digits=15, decimal_places=2)
-    image = models.ImageField(upload_to='photos/%Y/%m/%d/')
-    image1 = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True)
-    image2 = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True)
-    image3 = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True)
-    image4 = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True)
+    image = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True)
     amount = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.name
     
-
+    
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_images")
+    images = models.ImageField(upload_to='photos/%Y/%m/%d/', blank=True)
+   
+    def __str__(self):
+        return self.product.name
+    
 class OrderBox(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
     orderbox_data = models.BooleanField(default=True)
@@ -58,7 +61,7 @@ class Rate(models.Model):
     ])
     
     def __str__(self):
-        return str(self.id) + ' | ReviewUser ' + self.review_user + ' | Rate ' + str(self.rate)
+        return str(self.id) + ' | ReviewUser ' + str(self.review_user) + ' | Rate ' + str(self.rate)
     
 
 class Comment(models.Model):

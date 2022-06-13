@@ -1,5 +1,6 @@
+from dataclasses import fields
 from rest_framework import serializers
-from product.models import Product, OrderItem, OrderBox, Rate, Comment, Category
+from product.models import Product, OrderItem, OrderBox, ProductImage, Rate, Comment, Category
 from django.contrib.auth.models import User
 
 
@@ -26,7 +27,12 @@ class RateListSerializer(serializers.ModelSerializer):
         fields = '__all__'    
         
     def get_customer(self, obj):
-        return obj.review_user.username        
+        return obj.review_user.username  
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['product'] = instance.product.name
+        return rep          
         
         
 class CommentSerializer(serializers.ModelSerializer):
@@ -35,6 +41,11 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+        
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['product'] = instance.product.name
+        return rep 
         
 
 class CommentListSerializer(serializers.ModelSerializer):
@@ -49,9 +60,16 @@ class CommentListSerializer(serializers.ModelSerializer):
         return obj.comment_user.username
 
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ProductImage
+        fields = ['images',]
+
 class ProductSerializer(serializers.ModelSerializer):
     rate = RateSerializer(many=True, read_only=True)    
     comment = CommentSerializer(many=True, read_only=True)
+    product_images = ProductImageSerializer(many=True, read_only=True)
     
     class Meta:
         model = Product

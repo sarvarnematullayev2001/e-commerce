@@ -1,7 +1,7 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework import generics
-from product.models import OrderBox, Product, Category, OrderItem, Rate, Comment
-from product.api.serializers import CategorySerializer, OrderItemListSerializer, ProductSerializer, \
+from product.models import OrderBox, Product, ProductImage, Category, OrderItem, Rate, Comment
+from product.api.serializers import CategorySerializer, OrderItemListSerializer, ProductSerializer, ProductImageSerializer, \
                                     OrderItemCreateSerializer, OrderBoxListSerializer, OrderBoxCreateSerializer, \
                                     RateSerializer, RateListSerializer, CommentSerializer, CommentListSerializer
 from rest_framework.viewsets import ModelViewSet
@@ -21,6 +21,22 @@ class ProductListAPIView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     
     permission_classes = [IsAuthenticated]
+    
+
+class ProductMoreImageCreateAPIView(generics.CreateAPIView):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+    
+    def perform_create(self, serializer):
+        pk = self.kwargs['pk']
+        product = Product.objects.get(pk=pk)
+        
+        serializer.save(images=serializer.validated_data['images'], product=product)
+    
+
+class ProductMoreImageDetailAPIView(generics.RetrieveDestroyAPIView):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
     
     
 class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -84,12 +100,12 @@ class OrderBoxDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 class RateListAPIView(generics.ListAPIView):
     serializer_class = RateListSerializer
+    queryset = Rate.objects.all()
     
     permission_classes = [IsAuthenticated]
-        
-    def get_queryset(self):
-        pk = self.kwargs['pk']
-        return Rate.objects.filter(product__id=pk)
+    
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product_id',]
     
 
 class RateCreateAPIView(generics.CreateAPIView):
@@ -141,10 +157,9 @@ class CommentListAPIView(generics.ListAPIView):
     serializer_class = CommentListSerializer
     
     permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        pk = self.kwargs['pk']
-        return Comment.objects.filter(product__id=pk)
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product_id',]
     
     
 class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
